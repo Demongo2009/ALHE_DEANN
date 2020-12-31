@@ -6,6 +6,10 @@
 import random
 import math
 import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.layers.experimental.preprocessing import Normalization
+from tensorflow.keras import layers
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -56,7 +60,6 @@ def evaluate(y, x, population, params):
 
 
 
-
 def DE(params):
     global generationNum
     population = initialization(params.populationSize)
@@ -69,6 +72,69 @@ def DE(params):
             evaluate(trialVector, specimen, population, params)
             fes+=1
         generationNum+=1
+    return population
+
+
+
+
+
+
+
+
+def generateTrainingData(params):
+    data = []
+    for i in range(params.trainingDataSize):
+        data.append([random.uniform(minValue, maxValue) for j in range(dimensions)])
+    return np.split(np.array(data), int(len(data)*0.8))
+
+
+def dataNormalization(training, validation):
+    normalizerTraining = Normalization(axis=-1)
+    normalizerTraining.adapt(training)
+    normalizerValidation = Normalization(axis=-1)
+    normalizerValidation.adapt(validation)
+
+    return normalizerTraining(training), normalizerValidation(validation)
+
+
+def evaluateSet(set, params):
+    evaluated = np.array([ params.evaluationFunction(x) for x in set ])
+    return evaluated
+
+
+def DEANN(params):
+    global generationNum
+    population = initialization(params.populationSize)
+
+
+    training, validation = generateTrainingData(params)
+    normTraining, normValidation = dataNormalization(training, validation)
+    evaluatedTraining = evaluateSet(training)
+
+    inputs = keras.Input(shape=(None, dimensions))
+
+    x = layers.Dense(40, activation='relu')(inputs)
+    x = layers.Dense(40, activation='relu')(x)
+    x = layers.Dense(40, activation='relu')(x)
+
+    outputs = layers.Dense(1, activation='sigmoid')
+
+    model = keras.Model(inputs=inputs, outputs=outputs)
+
+    model.compile(optimizer=keras.optimizers.RMSprop(), loss=keras.losses.MeanSquaredError)
+
+    model.fit(training, evaluatedTraining, batch_size=params.trainingDataSize * 0.8, epochs=1000)
+
+
+    fes = 0
+    while fes < params.maxfes:
+        for specimen in population:
+            individuals = generate(population, population.index(specimen), params)
+            donorVector = mutation(individuals, params)
+            trialVector = crossover(specimen, donorVector, params)
+            evaluate(trialVector, specimen, population, params)
+            fes += 1
+        generationNum += 1
     return population
 
 
