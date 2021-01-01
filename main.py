@@ -6,6 +6,7 @@
 import random
 import math
 import numpy as np
+from cec17_functions import cec17_test_func
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -20,7 +21,7 @@ class DEParams:
     mutationFactor = 0.1
     crossoverProbability = 0.9
     differentialWeight = 0.8
-    maxfes = 20000
+    maxfes = 2000
     evaluationFunction = staticmethod(func)
 
 
@@ -75,6 +76,7 @@ def DE(params):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+
     global minValue
     global maxValue
     global dimensions
@@ -83,15 +85,32 @@ if __name__ == '__main__':
     maxValue = 100
     generationNum = 0
     dimensions = 6
+    '''
     dEParams = DEParams()
     population = DE(dEParams)
+    print("Populacja:")
     print(population)
     best = population[0]
     for s in population:
         if dEParams.evaluationFunction(s) <= dEParams.evaluationFunction(best):
             best = s
-    print(best)
+    print("Najlepszy: ")
+    print( str(best))
+    print("Wartość: ")
     print(dEParams.evaluationFunction(best))
+    '''
+    # x: Solution vector
+    x = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # nx: Number of dimensions
+    nx = 10
+    # mx: Number of objective functions
+    mx = 1
+    # func_num: Function number
+    func_num = 1
+    # Pointer for the calculated fitness
+    f = [0]
+    cec17_test_func(x, f, nx, mx, func_num)
+    print(f[0])
 
 
 
