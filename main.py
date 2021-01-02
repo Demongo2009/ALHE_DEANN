@@ -11,6 +11,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.layers.experimental.preprocessing import Normalization
 from tensorflow.keras import layers
+from tensorflow.keras.regularizers import l1_l2
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -30,10 +31,6 @@ class DEParams:
 
 
 def initialization(populationSize):
-    # population = []
-    # for i in range(populationSize):
-    #     population.append([ random.uniform(minValue, maxValue) for j in range(dimensions) ])
-    # return np.array(population)
     return np.random.uniform(minValue, maxValue, (populationSize, dimensions))
 
 
@@ -94,11 +91,12 @@ class DEANNParams:
     differentialWeight = 0.8
     maxfes = 20000
     trainingDataSize = 10000
-    evaluationFunction = staticmethod(func)
+    evaluationFunction = staticmethod(cec17_test_func)
 
 def generateTrainingData(params):
     data = np.random.uniform(minValue, maxValue, (params.trainingDataSize, dimensions))
-    return data[:80, :], data[80:, :]
+    cut = np.int32(params.trainingDataSize * 0.8)
+    return data[:cut, :], data[cut:, :]
 
 
 def dataNormalization(training, validation):
@@ -111,11 +109,16 @@ def dataNormalization(training, validation):
 
 
 def evaluateSet(set, params):
-    evaluated = np.array([ np.float32(params.evaluationFunction(x)) for x in set ])
+    val = [0]
+    global evaluated
+    evaluated = np.empty(set.shape[0])
+    for x in set:
+        params.evaluationFunction(x, val, dimensions, 1, funNumCEC)
+        np.append(evaluated,val)
     return evaluated
 
 def evaluateWithModel(y, x, population, model):
-    if model.predict(np.array(y).reshape(1,6)) <= model.predict(np.array(x).reshape(1,6)):
+    if model.predict(np.array(y).reshape(1,dimensions)) <= model.predict(np.array(x).reshape(1,dimensions)):
         population[np.where( population == x )[0][0]] = y
 
 
@@ -126,23 +129,27 @@ def DEANN(params):
 
 
     training, validation = generateTrainingData(params)
-    normTraining, normValidation = dataNormalization(training, validation)
+    # normTraining, normValidation = dataNormalization(training, validation)
+    normalizer = Normalization()
+    normalizer.adapt(training)
+
     evaluatedTraining = evaluateSet(training, params)
     evaluatedValidation = evaluateSet(validation, params)
 
     inputs = keras.Input(shape=(dimensions))
 
-    x = layers.Dense(50, activation='relu')(inputs)
-    x = layers.Dense(40, activation='relu')(x)
+    x = normalizer(inputs)
+    x = layers.Dense(50, activation='relu')(x)
+    x = layers.Dense(50, activation='relu')(x)
     x = layers.Dense(50, activation='relu')(x)
 
     outputs = layers.Dense(1, activation='relu')(x)
 
     model = keras.Model(inputs=inputs, outputs=outputs)
 
-    model.compile(optimizer=keras.optimizers.RMSprop(), loss=keras.losses.MeanAbsoluteError())
+    model.compile(optimizer=keras.optimizers.Adam(), loss=keras.losses.MeanSquaredError())
 
-    model.fit(normTraining, evaluatedTraining, batch_size=np.int32(params.trainingDataSize * 0.8), epochs=1000, validation_data=(normValidation,evaluatedValidation))
+    model.fit(training, evaluatedTraining, batch_size=np.int32(params.trainingDataSize * 0.8), epochs=1000, validation_data=(validation,evaluatedValidation))
 
 
     fes = 0
@@ -197,11 +204,20 @@ if __name__ == '__main__':
     population = DEANN(dEANNParams)
     print(population)
     best = population[0]
+    best_val = [0]
+    dEANNParams.evaluationFunction(best, best_val, dimensions, 1, funNumCEC)
     for s in population:
-        if dEANNParams.evaluationFunction(s) <= dEANNParams.evaluationFunction(best):
+        s_val = [0]
+        dEANNParams.evaluationFunction(s, s_val, dimensions, 1, funNumCEC)
+        if s_val <= best_val:
             best = s
-    print(best)
-    print(dEANNParams.evaluationFunction(best))
+            best_val = s_val
+    print("Najlepszy: ")
+    print(str(best))
+    print("Wartość: ")
+    print(best_val)
+
+    print("Numer generacji:" + str(generationNum))
 
 
 
