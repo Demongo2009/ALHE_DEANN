@@ -29,10 +29,11 @@ class DEParams:
 
 
 def initialization(populationSize):
-    population = []
-    for i in range(populationSize):
-        population.append([ random.uniform(minValue, maxValue) for j in range(dimensions) ])
-    return population
+    # population = []
+    # for i in range(populationSize):
+    #     population.append([ random.uniform(minValue, maxValue) for j in range(dimensions) ])
+    # return np.array(population)
+    return np.random.uniform(minValue, maxValue, (populationSize, dimensions))
 
 
 def generate(population, index, params):
@@ -54,7 +55,7 @@ def crossover(specimen, donorVector, params):
 
 def evaluate(y, x, population, params):
     if params.evaluationFunction(y) <= params.evaluationFunction(x):
-        population[population.index(x)] = y
+        population[np.where( population == x )[0][0]] = y
 
 
 
@@ -66,7 +67,7 @@ def DE(params):
     fes = 0
     while fes < params.maxfes:
         for specimen in population:
-            individuals = generate(population, population.index(specimen), params)
+            individuals = generate(population, np.where( population == specimen )[0][0], params)
             donorVector = mutation(individuals, params)
             trialVector = crossover(specimen, donorVector, params)
             evaluate(trialVector, specimen, population, params)
@@ -79,13 +80,18 @@ def DE(params):
 
 
 
-
+class DEANNParams:
+    populationSize = 100
+    mutationFactor = 0.1
+    crossoverProbability = 0.9
+    differentialWeight = 0.8
+    maxfes = 20000
+    trainingDataSize = 10000
+    evaluationFunction = staticmethod(func)
 
 def generateTrainingData(params):
-    data = []
-    for i in range(params.trainingDataSize):
-        data.append([random.uniform(minValue, maxValue) for j in range(dimensions)])
-    return np.split(np.array(data), int(len(data)*0.8))
+    data = np.random.uniform(minValue, maxValue, (params.trainingDataSize, dimensions))
+    return data[:80, :], data[80:, :]
 
 
 def dataNormalization(training, validation):
@@ -98,8 +104,13 @@ def dataNormalization(training, validation):
 
 
 def evaluateSet(set, params):
-    evaluated = np.array([ params.evaluationFunction(x) for x in set ])
+    evaluated = np.array([ np.float32(params.evaluationFunction(x)) for x in set ])
     return evaluated
+
+def evaluateWithModel(y, x, population, model):
+    if model.predict(np.array(y).reshape(1,6)) <= model.predict(np.array(x).reshape(1,6)):
+        population[np.where( population == x )[0][0]] = y
+
 
 
 def DEANN(params):
@@ -109,30 +120,31 @@ def DEANN(params):
 
     training, validation = generateTrainingData(params)
     normTraining, normValidation = dataNormalization(training, validation)
-    evaluatedTraining = evaluateSet(training)
+    evaluatedTraining = evaluateSet(training, params)
+    evaluatedValidation = evaluateSet(validation, params)
 
-    inputs = keras.Input(shape=(None, dimensions))
+    inputs = keras.Input(shape=(dimensions))
 
-    x = layers.Dense(40, activation='relu')(inputs)
+    x = layers.Dense(50, activation='relu')(inputs)
     x = layers.Dense(40, activation='relu')(x)
-    x = layers.Dense(40, activation='relu')(x)
+    x = layers.Dense(50, activation='relu')(x)
 
-    outputs = layers.Dense(1, activation='sigmoid')
+    outputs = layers.Dense(1, activation='relu')(x)
 
     model = keras.Model(inputs=inputs, outputs=outputs)
 
-    model.compile(optimizer=keras.optimizers.RMSprop(), loss=keras.losses.MeanSquaredError)
+    model.compile(optimizer=keras.optimizers.RMSprop(), loss=keras.losses.MeanAbsoluteError())
 
-    model.fit(training, evaluatedTraining, batch_size=params.trainingDataSize * 0.8, epochs=1000)
+    model.fit(normTraining, evaluatedTraining, batch_size=np.int32(params.trainingDataSize * 0.8), epochs=1000, validation_data=(normValidation,evaluatedValidation))
 
 
     fes = 0
     while fes < params.maxfes:
         for specimen in population:
-            individuals = generate(population, population.index(specimen), params)
+            individuals = generate(population, np.where( population == specimen)[0][0], params)
             donorVector = mutation(individuals, params)
             trialVector = crossover(specimen, donorVector, params)
-            evaluate(trialVector, specimen, population, params)
+            evaluateWithModel(trialVector, specimen, population, model)
             fes += 1
         generationNum += 1
     return population
@@ -158,6 +170,16 @@ if __name__ == '__main__':
             best = s
     print(best)
     print(dEParams.evaluationFunction(best))
+
+    dEANNParams = DEANNParams()
+    population = DEANN(dEANNParams)
+    print(population)
+    best = population[0]
+    for s in population:
+        if dEANNParams.evaluationFunction(s) <= dEANNParams.evaluationFunction(best):
+            best = s
+    print(best)
+    print(dEANNParams.evaluationFunction(best))
 
 
 
