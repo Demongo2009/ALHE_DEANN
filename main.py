@@ -17,12 +17,12 @@ def func(y):
     return sum([ x**2 for x in y ])
 
 class DEParams:
-    populationSize = 100
+    populationSize = 1000
     mutationFactor = 0.1
     crossoverProbability = 0.9
     differentialWeight = 0.8
-    maxfes = 2000
-    evaluationFunction = staticmethod(func)
+    maxfes = 200000
+    evaluationFunction = staticmethod(cec17_test_func)
 
 
 def initialization(populationSize):
@@ -50,7 +50,13 @@ def crossover(specimen, donorVector, params):
 
 
 def evaluate(y, x, population, params):
-    if params.evaluationFunction(y) <= params.evaluationFunction(x):
+    global dimensions
+    global funNumCEC
+    x_val = [0]
+    y_val = [0]
+    params.evaluationFunction(x, x_val, dimensions, 1, funNumCEC)
+    params.evaluationFunction(y, y_val, dimensions, 1, funNumCEC)
+    if y_val <= x_val:
         population[population.index(x)] = y
 
 
@@ -81,36 +87,30 @@ if __name__ == '__main__':
     global maxValue
     global dimensions
     global generationNum
-    minValue = -100
+    global funNumCEC
+    minValue = -100  #cannot find what are the limits for this function
     maxValue = 100
     generationNum = 0
-    dimensions = 6
-    '''
+    dimensions = 10  #only: 2, 10, 20, 30, 50, 100
+    funNumCEC = 1
+
     dEParams = DEParams()
     population = DE(dEParams)
-    print("Populacja:")
-    print(population)
     best = population[0]
+    best_val = [0]
+    dEParams.evaluationFunction(best, best_val, dimensions, 1, funNumCEC)
     for s in population:
-        if dEParams.evaluationFunction(s) <= dEParams.evaluationFunction(best):
+        s_val = [0]
+        dEParams.evaluationFunction(s, s_val, dimensions, 1, funNumCEC)
+        if s_val <= best_val:
             best = s
+            best_val = s_val
     print("Najlepszy: ")
     print( str(best))
     print("Wartość: ")
-    print(dEParams.evaluationFunction(best))
-    '''
-    # x: Solution vector
-    x = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # nx: Number of dimensions
-    nx = 10
-    # mx: Number of objective functions
-    mx = 1
-    # func_num: Function number
-    func_num = 1
-    # Pointer for the calculated fitness
-    f = [0]
-    cec17_test_func(x, f, nx, mx, func_num)
-    print(f[0])
+    print(best_val)
+
+    print("Numer generacji:" + str(generationNum))
 
 
 
