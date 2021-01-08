@@ -169,11 +169,11 @@ def DEANN(params):
 
     x = normalizer(inputs)
     x = layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(0.1), bias_regularizer=l1_l2(0.1))(x)
-    x = layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(0.1), bias_regularizer=l1_l2(0.1))(x)
-    x = layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(0.1), bias_regularizer=l1_l2(0.1))(x)
+    x = layers.Dense(5, activation=keras.activations.relu, kernel_regularizer=l1_l2(0.1), bias_regularizer=l1_l2(0.1))(x)
+    x = layers.Dense(2, activation=keras.activations.relu, kernel_regularizer=l1_l2(0.1), bias_regularizer=l1_l2(0.1))(x)
 
 
-    outputs = layers.Dense(1, activation=keras.activations.linear)(x)
+    outputs = layers.Dense(1, activation=keras.activations.linear, kernel_initializer=keras.initializers.Zeros)(x)
 
     model = keras.Model(inputs=inputs, outputs=outputs)
 
