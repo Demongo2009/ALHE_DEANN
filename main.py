@@ -111,7 +111,7 @@ class DEANNParams:
     differentialWeight = 0.8
     penaltyFactor = 0.1
     maxfes = 1000
-    trainingDataSize = 1000
+    trainingDataSize = 10000
     evaluationFunction = staticmethod(cec17_test_func)
 
 def generateTrainingData(params):
@@ -136,15 +136,25 @@ def dataNormalization(training, validation):
 def evaluateSet(set, params):
     val = [0]
     global evaluated
-    evaluated = np.empty(set.shape[0])
+    evaluated = []
     for x in set:
         params.evaluationFunction(x, val, dimensions, 1, funNumCEC)
-        np.append(evaluated,val)
-    return evaluated
+        evaluated.append(val)
+    return np.array(evaluated)
 
 def evaluateWithModel(y, x, population, model, params):
     x_val = model.predict(np.array(x).reshape(1,dimensions))
+    print("Model: " + str(x_val))
+    x_func = [0]
+    params.evaluationFunction(x, x_func, dimensions, 1, funNumCEC)
+    print("Funkcja: " + str(x_func))
+
     y_val = model.predict(np.array(y).reshape(1,dimensions))
+    print("Model: " + str(y_val))
+    y_func = [0]
+    params.evaluationFunction(y, y_func, dimensions, 1, funNumCEC)
+    print("Funkcja: " + str(y_func))
+
     x_val += penalty(x, params)
     y_val += penalty(y, params)
     if y_val <= x_val:
@@ -167,19 +177,18 @@ def DEANN(params):
 
     inputs = keras.Input(shape=(dimensions))
 
-    x = normalizer(inputs)
-    x = layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(0.1), bias_regularizer=l1_l2(0.1))(x)
-    x = layers.Dense(5, activation=keras.activations.relu, kernel_regularizer=l1_l2(0.1), bias_regularizer=l1_l2(0.1))(x)
-    x = layers.Dense(2, activation=keras.activations.relu, kernel_regularizer=l1_l2(0.1), bias_regularizer=l1_l2(0.1))(x)
+    # x = normalizer(inputs)
+    x = layers.Dense(20, activation=keras.activations.relu)(inputs)
+    x = layers.Dense(10, activation=keras.activations.relu)(x)
+    x = layers.Dense(2, activation=keras.activations.relu)(x)
 
-
-    outputs = layers.Dense(1, activation=keras.activations.linear, kernel_initializer=keras.initializers.Zeros)(x)
+    outputs = layers.Dense(1, activation=keras.activations.linear)(x)
 
     model = keras.Model(inputs=inputs, outputs=outputs)
 
     model.compile(optimizer=keras.optimizers.Adam(), loss=keras.losses.MeanSquaredError())
 
-    model.fit(training, evaluatedTraining, batch_size=np.int32(params.trainingDataSize * 0.8), epochs=1000, validation_data=(validation, evaluatedValidation))
+    model.fit(training, evaluatedTraining, epochs=1000, validation_data=(validation, evaluatedValidation))
 
 
     fes = 0
@@ -209,27 +218,27 @@ if __name__ == '__main__':
     dimensions = 10  #only: 2, 10, 20, 30, 50, 100
     funNumCEC = 1
 
-    random.seed(42)
-    np.random.seed(42)
+    # random.seed(42)
+    # np.random.seed(42)
 
-    dEParams = DEParams()
-    population = DE(dEParams)
-    print(population)
-    best = population[0]
-    best_val = [0]
-    dEParams.evaluationFunction(best, best_val, dimensions, 1, funNumCEC)
-    for s in population:
-        s_val = [0]
-        dEParams.evaluationFunction(s, s_val, dimensions, 1, funNumCEC)
-        if s_val <= best_val:
-            best = s
-            best_val = s_val
-    print("Najlepszy: ")
-    print( str(best))
-    print("Wartość: ")
-    print(best_val)
-
-    print("Numer generacji:" + str(generationNum))
+    # dEParams = DEParams()
+    # population = DE(dEParams)
+    # print(population)
+    # best = population[0]
+    # best_val = [0]
+    # dEParams.evaluationFunction(best, best_val, dimensions, 1, funNumCEC)
+    # for s in population:
+    #     s_val = [0]
+    #     dEParams.evaluationFunction(s, s_val, dimensions, 1, funNumCEC)
+    #     if s_val <= best_val:
+    #         best = s
+    #         best_val = s_val
+    # print("Najlepszy: ")
+    # print( str(best))
+    # print("Wartość: ")
+    # print(best_val)
+    #
+    # print("Numer generacji:" + str(generationNum))
 
 
 
