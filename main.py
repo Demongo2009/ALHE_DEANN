@@ -1,4 +1,10 @@
+# This is a sample Python script.
+
+# Press Shift+F10 to execute it or replace it with your code.
+# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+
 import random
+from sklearn.preprocessing import MinMaxScaler
 import pyDOE
 from pyDOE import lhs
 import math
@@ -10,9 +16,16 @@ from tensorflow.keras.layers.experimental.preprocessing import Normalization
 from tensorflow.keras import layers
 from tensorflow.keras.regularizers import l1_l2
 
+def print_hi(name):
+    # Use a breakpoint in the code line below to debug your script.
+    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+
+
+def func(y):
+    return sum([ x**2 for x in y ])
 
 class DEParams:
-    populationSize = 101
+    populationSize = 100
     crossoverProbability = 0.9
     differentialWeight = 0.8
     penaltyFactor = 0.1
