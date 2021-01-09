@@ -168,20 +168,24 @@ class DEANN:
         evaluatedTraining = DEANN.evaluateSet(training, params)
         evaluatedValidation = DEANN.evaluateSet(validation, params)
 
-        inputs = keras.Input(shape=(dimensions))
 
-        # x = normalizer(inputs)
-        x = layers.Dense(20, activation=keras.activations.relu)(inputs)
-        x = layers.Dense(10, activation=keras.activations.relu)(x)
-        x = layers.Dense(2, activation=keras.activations.relu)(x)
+        model = keras.Sequential()
 
-        outputs = layers.Dense(1, activation=keras.activations.linear)(x)
+        model.add(layers.Dropout(0.2))
+        model.add(layers.Dense(500, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
-        model = keras.Model(inputs=inputs, outputs=outputs)
+        model.add(layers.Dropout(0.2))
+        model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+
+        model.add(layers.Dropout(0.2))
+        model.add(layers.Dense(5, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+
+        model.add(layers.Dropout(0.2))
+        model.add(layers.Dense(1, activation=keras.activations.linear, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.compile(optimizer=keras.optimizers.Adam(), loss=keras.losses.MeanSquaredError())
 
-        model.fit(training, evaluatedTraining, epochs=2, validation_data=(validation, evaluatedValidation))
+        model.fit(training, evaluatedTraining, epochs=20, validation_data=(validation, evaluatedValidation))
 
 
         fes = 0
