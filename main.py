@@ -26,14 +26,14 @@ def func(y):
 
 class DEParams:
     populationSize = 100
-    crossoverProbability = 0.9
+    crossoverProbability = 0.7
     differentialWeight = 0.8
     penaltyFactor = 0.1
-    maxfes = 2000
+    maxfes = 200000
     evaluationFunction = staticmethod(cec17_test_func)
 
     #for surogate model
-    trainingDataSize = 1000
+    trainingDataSize = 1000000
 
 
 class Common:
@@ -102,16 +102,17 @@ class DE:
                 DE.evaluate(trialVector, specimen, population, params)
                 fes+=1
             generationNum+=1
+        generationNum = 0
         return population
 
 class DEANN:
     @staticmethod
     def generateTrainingData(params):
-        data = np.random.uniform(minValue, maxValue, (params.trainingDataSize, dimensions))
-        # lhsData = lhs(dimensions, samples=params.trainingDataSize)
-        # print(lhsData)
-        # data = np.array(lhsData) * 200
-        # data = data - 100
+        # data = np.random.uniform(minValue, maxValue, (params.trainingDataSize, dimensions))
+        lhsData = lhs(dimensions, samples=params.trainingDataSize)
+        print(lhsData)
+        data = np.array(lhsData) * 200
+        data = data - 100
         cut = np.int32(params.trainingDataSize * 0.8)
         return data[:cut, :], data[cut:, :]
 
@@ -137,19 +138,20 @@ class DEANN:
     @staticmethod
     def evaluateWithModel(y, x, population, model, params):
         x_val = model.predict(np.array(x).reshape(1,dimensions))
-        print("Model: " + str(x_val))
-        x_func = [0]
-        params.evaluationFunction(x, x_func, dimensions, 1, funNumCEC)
-        print("Funkcja: " + str(x_func))
+        # print("Model: " + str(x_val))
+        # x_func = [0]
+        # params.evaluationFunction(x, x_func, dimensions, 1, funNumCEC)
+        # print("Funkcja: " + str(x_func))
 
         y_val = model.predict(np.array(y).reshape(1,dimensions))
-        print("Model: " + str(y_val))
-        y_func = [0]
-        params.evaluationFunction(y, y_func, dimensions, 1, funNumCEC)
-        print("Funkcja: " + str(y_func))
+        # print("Model: " + str(y_val))
+        # y_func = [0]
+        # params.evaluationFunction(y, y_func, dimensions, 1, funNumCEC)
+        # print("Funkcja: " + str(y_func))
 
         x_val += Common.penalty(x, params)
         y_val += Common.penalty(y, params)
+
         if y_val <= x_val:
             population[np.where( population == x )[0][0]] = y
 
@@ -171,21 +173,23 @@ class DEANN:
 
         model = keras.Sequential()
 
+        model.add(keras.Input(shape=(dimensions)))
+
         model.add(layers.Dropout(0.2))
-        model.add(layers.Dense(500, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+        model.add(layers.Dense(100, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.add(layers.Dropout(0.2))
         model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
-        model.add(layers.Dropout(0.2))
-        model.add(layers.Dense(5, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+        # model.add(layers.Dropout(0.2))
+        # model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.add(layers.Dropout(0.2))
         model.add(layers.Dense(1, activation=keras.activations.linear, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
-        model.compile(optimizer=keras.optimizers.Adam(), loss=keras.losses.MeanSquaredError())
+        model.compile(optimizer=keras.optimizers.Adam(clipnorm=1), loss=keras.losses.MeanSquaredError())
 
-        model.fit(training, evaluatedTraining, epochs=20, validation_data=(validation, evaluatedValidation))
+        model.fit(training, evaluatedTraining, epochs=10, validation_data=(validation, evaluatedValidation))
 
 
         fes = 0
@@ -196,7 +200,11 @@ class DEANN:
                 trialVector = Common.crossover(specimen, donorVector, params)
                 DEANN.evaluateWithModel(trialVector, specimen, population, model, params)
                 fes += 1
+                print_hi(fes)
             generationNum += 1
+            # evaluatedPopulation = DEANN.evaluateSet(population, params)
+            # model.fit(population, evaluatedPopulation, epochs=10, validation_data=(validation, evaluatedValidation))
+        generationNum = 0
         return population
 
 if __name__ == '__main__':
@@ -212,31 +220,27 @@ if __name__ == '__main__':
     dimensions = 10  #only: 2, 10, 20, 30, 50, 100
     funNumCEC = 1
 
-    random.seed(42)
-    np.random.seed(42)
-
     params = DEParams()
 
 
+    DE_alg = DE()
+    population = DE_alg.run(params)
+    print(population)
+    best = population[0]
+    best_val = [0]
+    params.evaluationFunction(best, best_val, dimensions, 1, funNumCEC)
+    for s in population:
+        s_val = [0]
+        params.evaluationFunction(s, s_val, dimensions, 1, funNumCEC)
+        if s_val <= best_val:
+            best = s
+            best_val = s_val
+    print("Najlepszy: ")
+    print( str(best))
+    print("Wartość: ")
+    print(best_val)
 
-    # DE_alg = DE()
-    # population = DE_alg.run(params)
-    # print(population)
-    # best = population[0]
-    # best_val = [0]
-    # params.evaluationFunction(best, best_val, dimensions, 1, funNumCEC)
-    # for s in population:
-    #     s_val = [0]
-    #     params.evaluationFunction(s, s_val, dimensions, 1, funNumCEC)
-    #     if s_val <= best_val:
-    #         best = s
-    #         best_val = s_val
-    # print("Najlepszy: ")
-    # print( str(best))
-    # print("Wartość: ")
-    # print(best_val)
-    #
-    # print("Numer generacji:" + str(generationNum))
+    print("Numer generacji:" + str(generationNum))
 
 
     DEANN_alg = DEANN()
