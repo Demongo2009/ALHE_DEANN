@@ -9,31 +9,41 @@ import pyDOE
 from pyDOE import lhs
 import math
 import numpy as np
+import pandas as pd
 from cec17_functions import cec17_test_func
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.layers.experimental.preprocessing import Normalization
 from tensorflow.keras import layers
 from tensorflow.keras.regularizers import l1_l2
+import matplotlib.pyplot as plt
+
+
+
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
-def func(y):
-    return sum([ x**2 for x in y ])
+def func(specimen, valueToReturn, numOfDimensions, number, functionNumber):
+    if functionNumber == 0:
+        valueToReturn[0] = sum(100.0 * np.power( (np.subtract(specimen[1:], np.power(specimen[:-1], 2)) ), 2) + np.power((np.subtract(1, specimen[:-1])), 2))
+    else:
+        valueToReturn[0] = sum([ x**2 for x in specimen ])
 
 class DEParams:
     populationSize = 100
     crossoverProbability = 0.7
     differentialWeight = 0.8
     penaltyFactor = 0.1
-    maxfes = 200000
+    maxfes = 2000
+    # evaluationFunction = staticmethod(func)
     evaluationFunction = staticmethod(cec17_test_func)
 
     #for surogate model
-    trainingDataSize = 1000000
+    trainingDataSize = 10000
+
 
 
 class Common:
@@ -75,6 +85,9 @@ class Common:
         penaltyValue = arr.sum()
         return penaltyValue
 
+
+
+
 class DE:
     @staticmethod
     def evaluate(y, x, population, params):
@@ -84,6 +97,7 @@ class DE:
         y_val = [0]
         params.evaluationFunction(x, x_val, dimensions, 1, funNumCEC)
         params.evaluationFunction(y, y_val, dimensions, 1, funNumCEC)
+
         x_val += Common.penalty(x, params)
         y_val += Common.penalty(y, params)
         if y_val <= x_val:
@@ -94,6 +108,7 @@ class DE:
         global generationNum
         population = Common.initialization(params.populationSize)
         fes = 0
+        generationNum = 0
         while fes < params.maxfes:
             for specimen in population:
                 individuals = Common.generate(population, np.where( population == specimen )[0][0], params)
@@ -102,15 +117,17 @@ class DE:
                 DE.evaluate(trialVector, specimen, population, params)
                 fes+=1
             generationNum+=1
-        generationNum = 0
         return population
+
+
+
+
 
 class DEANN:
     @staticmethod
     def generateTrainingData(params):
         # data = np.random.uniform(minValue, maxValue, (params.trainingDataSize, dimensions))
         lhsData = lhs(dimensions, samples=params.trainingDataSize)
-        print(lhsData)
         data = np.array(lhsData) * 200
         data = data - 100
         cut = np.int32(params.trainingDataSize * 0.8)
@@ -152,6 +169,26 @@ class DEANN:
         x_val += Common.penalty(x, params)
         y_val += Common.penalty(y, params)
 
+
+        # plotting
+        global log
+        global fig
+        global ax
+
+        newValue = pd.DataFrame({"x0":y[0],
+                                 "x1":y[1],
+                                 "y":y_val[0]})
+
+        log = log.append(newValue, ignore_index=True)
+
+        # log.plot(x= "x", y= "y", kind="scatter", ax=ax)
+        # fig.show()
+
+        ax.scatter3D(log.x0, log.x1, log.y)
+        ax.set_zlim3d(0,10000)
+        fig.show()
+
+
         if y_val <= x_val:
             population[np.where( population == x )[0][0]] = y
 
@@ -163,36 +200,51 @@ class DEANN:
 
 
         training, validation = DEANN.generateTrainingData(params)
-        # normTraining, normValidation = dataNormalization(training, validation)
-        normalizer = Normalization()
-        normalizer.adapt(training)
 
         evaluatedTraining = DEANN.evaluateSet(training, params)
         evaluatedValidation = DEANN.evaluateSet(validation, params)
 
 
         model = keras.Sequential()
-
         model.add(keras.Input(shape=(dimensions)))
-
-        model.add(layers.Dropout(0.2))
-        model.add(layers.Dense(100, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.add(layers.Dropout(0.2))
         model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
-        # model.add(layers.Dropout(0.2))
-        # model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+        model.add(layers.Dropout(0.2))
+        model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+
+        model.add(layers.Dropout(0.2))
+        model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.add(layers.Dropout(0.2))
         model.add(layers.Dense(1, activation=keras.activations.linear, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.compile(optimizer=keras.optimizers.Adam(clipnorm=1), loss=keras.losses.MeanSquaredError())
 
-        model.fit(training, evaluatedTraining, epochs=10, validation_data=(validation, evaluatedValidation))
+        model.fit(training, evaluatedTraining, epochs=100, validation_data=(validation, evaluatedValidation))
+
+        global log
+        log = pd.DataFrame({"x0": [0],
+                            "x1": [0],
+                            "y": [0]})
+
+
+        global fig
+        global ax
+
+        # for 3d
+        fig = plt.figure()
+        ax = plt.axes(projection='3d')
+
+
+        # for 2d
+        # fig = plt.figure()
+        # ax = plt.axes()
 
 
         fes = 0
+        generationNum = 0
         while fes < params.maxfes:
             for specimen in population:
                 individuals = Common.generate(population, np.where( population == specimen )[0][0], params)
@@ -204,7 +256,6 @@ class DEANN:
             generationNum += 1
             # evaluatedPopulation = DEANN.evaluateSet(population, params)
             # model.fit(population, evaluatedPopulation, epochs=10, validation_data=(validation, evaluatedValidation))
-        generationNum = 0
         return population
 
 if __name__ == '__main__':
@@ -217,7 +268,7 @@ if __name__ == '__main__':
     minValue = -100
     maxValue = 100
     generationNum = 0
-    dimensions = 10  #only: 2, 10, 20, 30, 50, 100
+    dimensions = 2  #only: 2, 10, 20, 30, 50, 100
     funNumCEC = 1
 
     params = DEParams()
