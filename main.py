@@ -4,14 +4,14 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 import random
-from sklearn.preprocessing import MinMaxScaler
-import pyDOE
+#from sklearn.preprocessing import MinMaxScaler
+#import pyDOE
 from pyDOE import lhs
 import math
 import numpy as np
 import pandas as pd
 from cec17_functions import cec17_test_func
-import tensorflow as tf
+#import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.layers.experimental.preprocessing import Normalization
 from tensorflow.keras import layers
@@ -36,10 +36,11 @@ class DEParams:
     populationSize = 100
     crossoverProbability = 0.7
     differentialWeight = 0.8
-    penaltyFactor = 0.1
     maxfes = 2000
-    # evaluationFunction = staticmethod(func)
-    evaluationFunction = staticmethod(cec17_test_func)
+
+    penaltyFactor = 0.1
+    evaluationFunction = staticmethod(func)
+    # evaluationFunction = staticmethod(cec17_test_func)
 
     #for surogate model
     trainingDataSize = 10000
@@ -171,76 +172,63 @@ class DEANN:
 
 
         # plotting
-        global log
-        global fig
-        global ax
-
-        newValue = pd.DataFrame({"x0":y[0],
-                                 "x1":y[1],
-                                 "y":y_val[0]})
-
-        log = log.append(newValue, ignore_index=True)
-
-        # log.plot(x= "x", y= "y", kind="scatter", ax=ax)
+        # global log
+        # global fig
+        # global ax
+        #
+        # newValue = pd.DataFrame({"x0":y[0],
+        #                          "x1":y[1],
+        #                          "y":y_val[0]})
+        #
+        # log = log.append(newValue, ignore_index=True)
+        #
+        # # log.plot(x= "x", y= "y", kind="scatter", ax=ax)
+        # # fig.show()
+        #
+        # ax.scatter3D(log.x0, log.x1, log.y)
+        # ax.set_zlim3d(0,10000)
         # fig.show()
-
-        ax.scatter3D(log.x0, log.x1, log.y)
-        ax.set_zlim3d(0,10000)
-        fig.show()
 
 
         if y_val <= x_val:
             population[np.where( population == x )[0][0]] = y
 
-
-
-    def run(self, params):
-        global generationNum
-        population = Common.initialization(params.populationSize)
-
-
+    def getModel(self, params):
         training, validation = DEANN.generateTrainingData(params)
 
         evaluatedTraining = DEANN.evaluateSet(training, params)
         evaluatedValidation = DEANN.evaluateSet(validation, params)
 
-
         model = keras.Sequential()
         model.add(keras.Input(shape=(dimensions)))
 
         model.add(layers.Dropout(0.2))
-        model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+        model.add(
+            layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.add(layers.Dropout(0.2))
-        model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+        model.add(
+            layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.add(layers.Dropout(0.2))
-        model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+        model.add(
+            layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.add(layers.Dropout(0.2))
-        model.add(layers.Dense(1, activation=keras.activations.linear, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+        model.add(
+            layers.Dense(1, activation=keras.activations.linear, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.compile(optimizer=keras.optimizers.Adam(clipnorm=1), loss=keras.losses.MeanSquaredError())
 
-        model.fit(training, evaluatedTraining, epochs=100, validation_data=(validation, evaluatedValidation))
+        model.fit(training, evaluatedTraining, epochs=10, validation_data=(validation, evaluatedValidation))
+        return model
 
-        global log
-        log = pd.DataFrame({"x0": [0],
-                            "x1": [0],
-                            "y": [0]})
-
-
-        global fig
-        global ax
-
-        # for 3d
-        fig = plt.figure()
-        ax = plt.axes(projection='3d')
+    def run(self, params, model):
+        global generationNum
+        population = Common.initialization(params.populationSize)
 
 
-        # for 2d
-        # fig = plt.figure()
-        # ax = plt.axes()
+
 
 
         fes = 0
@@ -252,7 +240,7 @@ class DEANN:
                 trialVector = Common.crossover(specimen, donorVector, params)
                 DEANN.evaluateWithModel(trialVector, specimen, population, model, params)
                 fes += 1
-                print_hi(fes)
+                #print_hi(fes)
             generationNum += 1
             # evaluatedPopulation = DEANN.evaluateSet(population, params)
             # model.fit(population, evaluatedPopulation, epochs=10, validation_data=(validation, evaluatedValidation))
@@ -268,49 +256,55 @@ if __name__ == '__main__':
     minValue = -100
     maxValue = 100
     generationNum = 0
-    dimensions = 2  #only: 2, 10, 20, 30, 50, 100
+    dimensions = 5  #only: 2, 10, 20, 30, 50, 100
     funNumCEC = 1
 
     params = DEParams()
 
 
     DE_alg = DE()
-    population = DE_alg.run(params)
-    print(population)
-    best = population[0]
-    best_val = [0]
-    params.evaluationFunction(best, best_val, dimensions, 1, funNumCEC)
-    for s in population:
-        s_val = [0]
-        params.evaluationFunction(s, s_val, dimensions, 1, funNumCEC)
-        if s_val <= best_val:
-            best = s
-            best_val = s_val
-    print("Najlepszy: ")
-    print( str(best))
-    print("Wartość: ")
-    print(best_val)
+    for i in range(25):
+        print("#################################### "+ str(i+1)+ " #############################")
+        population = DE_alg.run(params)
+        #print(population)
+        best = population[0]
+        best_val = [0]
+        params.evaluationFunction(best, best_val, dimensions, 1, funNumCEC)
+        for s in population:
+            s_val = [0]
+            params.evaluationFunction(s, s_val, dimensions, 1, funNumCEC)
+            if s_val <= best_val:
+                best = s
+                best_val = s_val
+        #print("Najlepszy: ")
+        #print( str(best))
+        #print("Wartość: ")
+        print(best_val)
 
-    print("Numer generacji:" + str(generationNum))
+        #print("Numer generacji:" + str(generationNum))
 
 
     DEANN_alg = DEANN()
-    population = DEANN_alg.run(params)
-    print(population)
-    best = population[0]
-    best_val = [0]
-    params.evaluationFunction(best, best_val, dimensions, 1, funNumCEC)
-    for s in population:
-        s_val = [0]
-        params.evaluationFunction(s, s_val, dimensions, 1, funNumCEC)
-        if s_val <= best_val:
-            best = s
-            best_val = s_val
-    print("Najlepszy: ")
-    print(str(best))
-    print("Wartość: ")
-    print(best_val)
+    model = DEANN_alg.getModel(params)
 
-    print("Numer generacji:" + str(generationNum))
+    for i in range(25):
+        print("#################################### "+ str(i+1)+ " #############################")
+        population = DEANN_alg.run(params, model)
+        #print(population)
+        best = population[0]
+        best_val = [0]
+        params.evaluationFunction(best, best_val, dimensions, 1, funNumCEC)
+        for s in population:
+            s_val = [0]
+            params.evaluationFunction(s, s_val, dimensions, 1, funNumCEC)
+            if s_val <= best_val:
+                best = s
+                best_val = s_val
+        #print("Najlepszy: ")
+        #print(str(best))
+        #print("Wartość: ")
+        print(best_val)
+
+        #print("Numer generacji:" + str(generationNum))
 
 
