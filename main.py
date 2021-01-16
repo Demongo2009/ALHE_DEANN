@@ -4,7 +4,6 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 import random
-from sklearn.preprocessing import MinMaxScaler
 import pyDOE
 from pyDOE import lhs
 import math
@@ -38,8 +37,8 @@ class DEParams:
     differentialWeight = 0.8
     penaltyFactor = 0.1
     maxfes = 2000
-    # evaluationFunction = staticmethod(func)
-    evaluationFunction = staticmethod(cec17_test_func)
+    evaluationFunction = staticmethod(func)
+    # evaluationFunction = staticmethod(cec17_test_func)
 
     #for surogate model
     trainingDataSize = 10000
@@ -176,17 +175,19 @@ class DEANN:
         global ax
 
         newValue = pd.DataFrame({"x0":y[0],
-                                 "x1":y[1],
+                                 # "x1":y[1],
                                  "y":y_val[0]})
 
         log = log.append(newValue, ignore_index=True)
 
-        # log.plot(x= "x", y= "y", kind="scatter", ax=ax)
-        # fig.show()
-
-        ax.scatter3D(log.x0, log.x1, log.y)
-        ax.set_zlim3d(0,10000)
+        log.plot(x= "x0", y= "y", kind="scatter", ax=ax)
+        ax.set_xlim(-100,100)
+        ax.set_ylim(0,2000)
         fig.show()
+
+        # ax.scatter3D(log.x0, log.x1, log.y)
+        # ax.set_zlim3d(0,10000)
+        # fig.show()
 
 
         if y_val <= x_val:
@@ -218,15 +219,15 @@ class DEANN:
         model.add(layers.Dense(20, activation=keras.activations.relu, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
         model.add(layers.Dropout(0.2))
-        model.add(layers.Dense(1, activation=keras.activations.linear, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
+        model.add(layers.Dense(1, activation=keras.activations.linear, kernel_initializer=keras.initializers.zeros))
 
-        model.compile(optimizer=keras.optimizers.Adam(clipnorm=1), loss=keras.losses.MeanSquaredError())
+        model.compile(optimizer=keras.optimizers.Adam(clipnorm=1, epsilon=1e-9), loss=keras.losses.MeanSquaredError())
 
         model.fit(training, evaluatedTraining, epochs=100, validation_data=(validation, evaluatedValidation))
 
         global log
         log = pd.DataFrame({"x0": [0],
-                            "x1": [0],
+                            # "x1": [0],
                             "y": [0]})
 
 
@@ -234,13 +235,13 @@ class DEANN:
         global ax
 
         # for 3d
-        fig = plt.figure()
-        ax = plt.axes(projection='3d')
+        # fig = plt.figure()
+        # ax = plt.axes(projection='3d')
 
 
         # for 2d
-        # fig = plt.figure()
-        # ax = plt.axes()
+        fig = plt.figure()
+        ax = plt.axes()
 
 
         fes = 0
@@ -268,7 +269,7 @@ if __name__ == '__main__':
     minValue = -100
     maxValue = 100
     generationNum = 0
-    dimensions = 2  #only: 2, 10, 20, 30, 50, 100
+    dimensions = 1  #only: 2, 10, 20, 30, 50, 100
     funNumCEC = 1
 
     params = DEParams()
