@@ -17,13 +17,13 @@ def cec17_test_func(x, f, nx, mx, func_num,
         f[0] = sum([value ** 2 for value in x])
         return
 
-    if func_num == 32:
-        f[0] = sum(
-            100.0 *
-            np.power(
-                (np.subtract(x[1:], np.power(x[:-1], 2))), 2)
-            + np.power((np.subtract(1, x[:-1])), 2))
-        return
+    # if func_num == 32:
+    #     f[0] = sum(
+    #         100.0 *
+    #         np.power(
+    #             (np.subtract(x[1:], np.power(x[:-1], 2))), 2)
+    #         + np.power((np.subtract(1, x[:-1])), 2))
+    #     return
 
     functions = dll_path
     x_pointer_type = POINTER(c_double * nx)
