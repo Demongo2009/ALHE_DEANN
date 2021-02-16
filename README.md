@@ -21,7 +21,7 @@ The most resource-hungry stage of Differential Evolution algorithm is specimen e
 
 Solution is implemented in Python, using Keras module. The Differential Evolution (DE) design follows written below:
 
-![differentialEvolution](./assets/differentialEvolution.jpg)
+![differentialEvolution](./differentialEvolution.jpg)
 
 In the case of Differential Evolution using Artificial Neural Network (DEANN), right after the *initialization* comes the stage of learning the neural network. The model is then used in *evaluate*, where it replaces original cost function. Influenced by the article ( [source](https://www.researchgate.net/publication/342548581_Using_Neural_Networks_as_Surrogate_Models_in_Differential_Evolution_Optimization_of_Truss_Structures) ), we decided that our neural network will have the *numberOfDimensions*-20-20-20-1 architecture. As a activation function we use ReLU in hidden layers.
 
