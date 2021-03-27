@@ -110,11 +110,11 @@ class DEANN(DE):
         model.add(
             layers.Dense(1, activation=keras.activations.linear, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
-        model.compile(optimizer=keras.optimizers.Adam(clipnorm=1), loss=keras.losses.MeanSquaredError(),
-                      callbacks=[early_stopping_cb])
+        model.compile(optimizer=keras.optimizers.Adam(clipnorm=1), loss=keras.losses.MeanSquaredError())
 
         model.fit(training, evaluatedTraining, epochs=self.dEANNParams.epochs,
-                  validation_data=(validation, evaluatedValidation))
+                  validation_data=(validation, evaluatedValidation),
+                      callbacks=[early_stopping_cb])
         return model, validation, evaluatedValidation
 
     def run(self):
