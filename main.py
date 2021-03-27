@@ -1,3 +1,4 @@
+
 from DE import *
 from DEANN import *
 from optparse import OptionParser
@@ -66,6 +67,8 @@ if __name__ == '__main__':
                               teachModelEveryGenerationEpochs=options.epochsGeneration)
 
     iters = options.iterations
+
+
 
     DE_alg = DE(params)
 

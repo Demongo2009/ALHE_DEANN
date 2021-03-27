@@ -1,3 +1,5 @@
+import os
+import time
 import random
 from pyDOE import lhs
 import math
@@ -91,6 +93,19 @@ class DEANN(DE):
         early_stopping_cb = keras.callbacks.EarlyStopping(patience=10,
                                                           restore_best_weights=True)
 
+
+
+        root_logdir = os.path.join(os.curdir, "my_logs")
+
+        def get_run_logdir():
+            run_id = time.strftime("run_%Y_%m_%d-%H_%M_%S")
+            return os.path.join(root_logdir, run_id)
+
+        run_logdir = get_run_logdir()
+
+        tensorboard_cb = keras.callbacks.TensorBoard(run_logdir)
+
+
         model = keras.Sequential()
         model.add(keras.Input(shape=(self.dEParams.dimensions)))
 
@@ -110,11 +125,11 @@ class DEANN(DE):
         model.add(
             layers.Dense(1, activation=keras.activations.linear, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
-        model.compile(optimizer=keras.optimizers.Adam(clipnorm=1), loss=keras.losses.MeanSquaredError(),
-                      callbacks=[early_stopping_cb])
+        model.compile(optimizer=keras.optimizers.Adam(clipnorm=1), loss=keras.losses.MeanSquaredError())
 
         model.fit(training, evaluatedTraining, epochs=self.dEANNParams.epochs,
-                  validation_data=(validation, evaluatedValidation))
+                  validation_data=(validation, evaluatedValidation),
+                      callbacks=[early_stopping_cb, tensorboard_cb])
         return model, validation, evaluatedValidation
 
     def run(self):
