@@ -88,6 +88,9 @@ class DEANN(DE):
         evaluatedTraining = self.evaluateSet(training)
         evaluatedValidation = self.evaluateSet(validation)
 
+        early_stopping_cb = keras.callbacks.EarlyStopping(patience=10,
+                                                          restore_best_weights=True)
+
         model = keras.Sequential()
         model.add(keras.Input(shape=(self.dEParams.dimensions)))
 
@@ -107,7 +110,8 @@ class DEANN(DE):
         model.add(
             layers.Dense(1, activation=keras.activations.linear, kernel_regularizer=l1_l2(), bias_regularizer=l1_l2()))
 
-        model.compile(optimizer=keras.optimizers.Adam(clipnorm=1), loss=keras.losses.MeanSquaredError())
+        model.compile(optimizer=keras.optimizers.Adam(clipnorm=1), loss=keras.losses.MeanSquaredError(),
+                      callbacks=[early_stopping_cb])
 
         model.fit(training, evaluatedTraining, epochs=self.dEANNParams.epochs,
                   validation_data=(validation, evaluatedValidation))

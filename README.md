@@ -27,3 +27,40 @@ In the case of Differential Evolution using Artificial Neural Network (DEANN), r
 
 Random number generation using Latin Hypercube Sampling ([wiki](https://en.wikipedia.org/wiki/Latin_hypercube_sampling)) from module pyDOE.
 
+## Usage
+```shell
+./main.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -q, --debug           Prints debug info
+  -i ITERATIONS, --iterations=ITERATIONS
+                        Number of algorithms runs, incrementing seed by 1
+                        (default 10)
+  -l, --plot            Draw plot, works only for 1D and 2D.
+  -s SEED, --seed=SEED  Initial seed for numpy and random (default 42)
+  -d DIMENSIONS, --dimensions=DIMENSIONS
+                        Number of dimension (default 2)
+  -f FUNCTION, --function=FUNCTION
+                        function number (default 31) [number 31 is quadratic
+                        function, number 4 is Rosenbrock]
+  -n POPSIZE, --popSize=POPSIZE
+                        Population size (default 100)
+  -c CROSSOVERPROBABILITY, --crossover=CROSSOVERPROBABILITY
+                        Crossover probability (default 0.7)
+  -w DIFFERENTIALWEIGHT, --diffWeight=DIFFERENTIALWEIGHT
+                        Differential weight (default 0.8)
+  -m MAXFES, --maxfes=MAXFES
+                        Max function evaluations (default 2000)
+  -p PENALTYFACTOR, --penaltyFactor=PENALTYFACTOR
+                        Penalty factor (default 0.1)
+  -t TRAININGSIZE, --trainingSize=TRAININGSIZE
+                        DEANN: training + validation data size (default 10000)
+                        [split is 80/20]
+  -e EPOCHS, --epochs=EPOCHS
+                        DEANN: epochs for model training (default 10)
+  -g, --teachGeneration
+                        DEANN: epochs for model training (default False)
+  -r EPOCHSGENERATION, --epochsGeneration=EPOCHSGENERATION
+                        DEANN: epochs for model training (default 10)
+```
