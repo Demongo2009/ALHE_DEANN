@@ -64,3 +64,7 @@ Options:
   -r EPOCHSGENERATION, --epochsGeneration=EPOCHSGENERATION
                         DEANN: epochs for model training (default 10)
 ```
+If you have TensorFlow installed you can also use TensorBoard for better visualization.
+```shell
+tensorboard --logdir=./my_logs --port=6006
+```
