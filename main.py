@@ -61,10 +61,18 @@ if __name__ == '__main__':
                       seed=options.seed,
                       drawPlot=drawPlot)
 
-    dEAANParams = DEANNParams(trainingDataSize=options.trainingSize,
-                              epochs=options.epochs,
-                              teachModelEveryGeneration=options.teachGeneration,
+    dEAANParams = DEANNParams(teachModelEveryGeneration=options.teachGeneration,
                               teachModelEveryGenerationEpochs=options.epochsGeneration)
+
+    aNNParams = ANNParams(dimensions=options.dimensions,
+                          trainingDataSize=options.trainingSize,
+                            epochs=options.epochs,
+                          numberOfHiddenLayers=5,
+                          numberOfStartNeurons=500,
+                          learningRate=3e-8,
+                          useCV=True,
+                          funNumCEC=options.function
+                          )
 
     iters = options.iterations
 
@@ -93,7 +101,7 @@ if __name__ == '__main__':
         print("Wartość: ")
         print(best_val)
 
-    DEANN_alg = DEANN(params, dEAANParams)
+    DEANN_alg = DEANN(params, dEAANParams, aNNParams)
 
     for i in range(iters):
         print("##### " + str(i + 1) + " #####")

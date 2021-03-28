@@ -47,7 +47,6 @@ class DEANN(DE):
                 newValue = pd.DataFrame([[specimen[0], specimen[1], specimen_val[0]]], columns=self.columns)
             else:
                 newValue = pd.DataFrame([[specimen[0], specimen_val[0]]], columns=self.columns)
-
             self.log = self.log.append(newValue)
 
             if self.dEParams.dimensions == 2:
