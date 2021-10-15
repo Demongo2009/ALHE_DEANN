@@ -69,8 +69,8 @@ if __name__ == '__main__':
                             epochs=options.epochs,
                           numberOfHiddenLayers=5,
                           numberOfStartNeurons=500,
-                          learningRate=3e-8,
-                          useCV=True,
+                          learningRate=3e-3,
+                          useCV=False,
                           funNumCEC=options.function
                           )
 
@@ -104,7 +104,7 @@ if __name__ == '__main__':
     DEANN_alg = DEANN(params, dEAANParams, aNNParams)
 
     for i in range(iters):
-        print("##### " + str(i + 1) + " #####")
+        print("##### DEANN " + str(i + 1) + " #####")
 
         population = DEANN_alg.run()
 
