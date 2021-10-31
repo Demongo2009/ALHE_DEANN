@@ -10,15 +10,16 @@ from tensorflow import keras
 from tensorflow.keras.layers.experimental.preprocessing import Normalization
 from tensorflow.keras import layers
 from tensorflow.keras.regularizers import l1_l2
-from cec17_functions import cec17_test_func
+from cec21_functions import cec21_test_func
 import matplotlib.pyplot as plt
 from scipy.stats import reciprocal
 from sklearn.model_selection import RandomizedSearchCV
+from kmeans_initializer import *
 
 class ANNParams:
     def __init__(self, dimensions = 2, trainingDataSize=10000, epochs=10,
                  numberOfHiddenLayers = 3, numberOfStartNeurons=100, learningRate = 3e-6, useCV=False,
-                 funNumCEC = 1, loadModel = False, saveToPath = "../my_models/", pathToModel = "../my_models/model"):
+                 funNumCEC = 1):
         """
         Params for ANN trainer created for ANN usage in DEANN. Can also be used to train and save ANN.
 
@@ -38,7 +39,7 @@ class ANNParams:
         self.numberOfStartNeurons = numberOfStartNeurons
 
         self.useCV = useCV
-        self.evaluationFunction = cec17_test_func
+        self.evaluationFunction = cec21_test_func
         self.funNumCEC = funNumCEC
         self.learningRate = learningRate
         self.loadModel = loadModel
@@ -103,10 +104,11 @@ class ANNTrainer():
         return model, validation, evaluatedValidation
 
 
-    def buildModel(self, n_hidden = 3, n_neurons = 20, learning_rate = 3e-2):
+    def buildModel(self, n_hidden = 3, n_neurons = 20, learning_rate = 3e-3, centers=""):
         model = keras.Sequential()
         model.add(keras.Input(shape=(self.aNNParams.dimensions)))
-
+        if centers == "":
+            centers = np.loadtxt("rbf_for_tf2/data/data.txt")[:, :-1]
 
         for i in range(n_hidden):
             model.add(keras.layers.BatchNormalization())
@@ -116,6 +118,10 @@ class ANNTrainer():
                              kernel_regularizer=l1_l2(), bias_regularizer=l1_l2(),
                              kernel_initializer=keras.initializers.he_uniform()))
             n_neurons/=2
+
+        #         rbflayer = RBFLayer(n_neurons, betas=4.0, input_shape=(
+        #                    self.aNNParams.dimensions,), initializer=InitCentersKMeans(centers) )
+        # model.add(rbflayer)
 
         model.add(keras.layers.BatchNormalization())
         model.add(layers.Dropout(0.2))

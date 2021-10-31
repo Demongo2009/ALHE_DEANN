@@ -1,3 +1,5 @@
+
+from DE import *
 from DEANN import *
 from optparse import OptionParser
 
@@ -65,10 +67,10 @@ if __name__ == '__main__':
     aNNParams = ANNParams(dimensions=options.dimensions,
                           trainingDataSize=options.trainingSize,
                             epochs=options.epochs,
-                          numberOfHiddenLayers=3,
-                          numberOfStartNeurons=100,
-                          learningRate=3e-6,
-                          useCV=False,
+                          numberOfHiddenLayers=5,
+                          numberOfStartNeurons=500,
+                          learningRate=3e-8,
+                          useCV=True,
                           funNumCEC=options.function
                           )
 
@@ -102,7 +104,7 @@ if __name__ == '__main__':
     DEANN_alg = DEANN(params, dEAANParams, aNNParams)
 
     for i in range(iters):
-        print("##### " + str(i + 1) + " #####")
+        print("##### DEANN " + str(i + 1) + " #####")
 
         population = DEANN_alg.run()
 
