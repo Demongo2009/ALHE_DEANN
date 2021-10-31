@@ -18,7 +18,7 @@ from sklearn.model_selection import RandomizedSearchCV
 class ANNParams:
     def __init__(self, dimensions = 2, trainingDataSize=10000, epochs=10,
                  numberOfHiddenLayers = 3, numberOfStartNeurons=100, learningRate = 3e-6, useCV=False,
-                 funNumCEC = 1):
+                 funNumCEC = 1, loadModel = False, saveToPath = "../my_models/", pathToModel = "../my_models/model"):
         """
         Params for ANN trainer created for ANN usage in DEANN. Can also be used to train and save ANN.
 
@@ -41,6 +41,9 @@ class ANNParams:
         self.evaluationFunction = cec17_test_func
         self.funNumCEC = funNumCEC
         self.learningRate = learningRate
+        self.loadModel = loadModel
+        self.pathToModel = pathToModel
+        self.saveToPath = saveToPath
 
 class ANNTrainer():
     def __init__(self, aNNParams = ANNParams()):
@@ -60,10 +63,13 @@ class ANNTrainer():
         evaluatedTraining = self.evaluateSet(training)
         evaluatedValidation = self.evaluateSet(validation)
 
+        if(self.aNNParams.loadModel):
+            return keras.models.load_model(self.aNNParams.pathToModel), validation, evaluatedValidation
+
         early_stopping_cb = keras.callbacks.EarlyStopping(patience=10,
                                                           restore_best_weights=True)
 
-        root_logdir = os.path.join(os.curdir, "my_logs")
+        root_logdir = os.path.join(os.curdir, "../my_logs")
         def get_run_logdir():
             run_id = time.strftime("run_%Y_%m_%d-%H_%M_%S")
             return os.path.join(root_logdir, run_id)
@@ -93,7 +99,7 @@ class ANNTrainer():
                   validation_data=(validation, evaluatedValidation),
                   callbacks=[early_stopping_cb, tensorboard_cb])
 
-
+        model.save(self.aNNParams.saveToPath + time.strftime("%Y_%m_%d-%H_%M_%S"))
         return model, validation, evaluatedValidation
 
 
@@ -106,9 +112,9 @@ class ANNTrainer():
             model.add(keras.layers.BatchNormalization())
             model.add(layers.Dropout(0.2))
             model.add(
-                layers.Dense(n_neurons, activation=keras.layers.LeakyReLU(alpha=0.2),
+                layers.Dense(n_neurons, activation=keras.activations.relu,
                              kernel_regularizer=l1_l2(), bias_regularizer=l1_l2(),
-                             kernel_initializer=keras.initializers.he_uniform))
+                             kernel_initializer=keras.initializers.he_uniform()))
             n_neurons/=2
 
         model.add(keras.layers.BatchNormalization())

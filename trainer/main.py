@@ -1,5 +1,3 @@
-
-from DE import *
 from DEANN import *
 from optparse import OptionParser
 
@@ -67,10 +65,10 @@ if __name__ == '__main__':
     aNNParams = ANNParams(dimensions=options.dimensions,
                           trainingDataSize=options.trainingSize,
                             epochs=options.epochs,
-                          numberOfHiddenLayers=5,
-                          numberOfStartNeurons=500,
-                          learningRate=3e-8,
-                          useCV=True,
+                          numberOfHiddenLayers=3,
+                          numberOfStartNeurons=100,
+                          learningRate=3e-6,
+                          useCV=False,
                           funNumCEC=options.function
                           )
 
