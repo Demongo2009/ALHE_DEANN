@@ -42,9 +42,9 @@ class ANNParams:
         self.evaluationFunction = cec21_test_func
         self.funNumCEC = funNumCEC
         self.learningRate = learningRate
-        self.loadModel = loadModel
-        self.pathToModel = pathToModel
-        self.saveToPath = saveToPath
+        # self.loadModel = loadModel
+        # self.pathToModel = pathToModel
+        # self.saveToPath = saveToPath
 
 class ANNTrainer():
     def __init__(self, aNNParams = ANNParams()):
