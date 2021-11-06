@@ -1,6 +1,7 @@
 
 from DE import *
 from DEANN import *
+from DESVRG import *
 from optparse import OptionParser
 
 if __name__ == '__main__':
@@ -61,29 +62,74 @@ if __name__ == '__main__':
                       seed=options.seed,
                       drawPlot=drawPlot)
 
-    dEAANParams = DEANNParams(teachModelEveryGeneration=options.teachGeneration,
-                              teachModelEveryGenerationEpochs=options.epochsGeneration)
+    # dEAANParams = DEANNParams(teachModelEveryGeneration=options.teachGeneration,
+    #                           teachModelEveryGenerationEpochs=options.epochsGeneration)
+    #
+    # aNNParams = ANNParams(dimensions=options.dimensions,
+    #                       trainingDataSize=options.trainingSize,
+    #                         epochs=options.epochs,
+    #                       numberOfHiddenLayers=5,
+    #                       numberOfStartNeurons=500,
+    #                       learningRate=3e-8,
+    #                       useCV=True,
+    #                       funNumCEC=options.function
+    #                       )
 
-    aNNParams = ANNParams(dimensions=options.dimensions,
-                          trainingDataSize=options.trainingSize,
-                            epochs=options.epochs,
-                          numberOfHiddenLayers=5,
-                          numberOfStartNeurons=500,
-                          learningRate=3e-8,
-                          useCV=True,
-                          funNumCEC=options.function
-                          )
+    dESVRGParams = DESVRGParams(
+        trainingDataSize=1000,
+        teachModel=True,
+        everyNGeneration=20,
+        kernel="rbf",
+        degree=5,
+        C=100,
+        gamma=0.1,
+    )
+
+    dESVRPParams = DESVRGParams(
+        trainingDataSize=1000,
+        teachModel=True,
+        everyNGeneration=20,
+        kernel="poly",
+        degree=5,
+        C=100,
+        gamma=0.1,
+    )
 
     iters = options.iterations
 
 
 
-    DE_alg = DE(params)
+    # DE_alg = DE(params)
+    #
+    # for i in range(iters):
+    #     print("##### " + str(i + 1) + " #####")
+    #
+    #     population = DE_alg.run()
+    #
+    #     # find best specimen
+    #     best = population[0]
+    #     best_val = [0]
+    #     params.evaluationFunction(best, best_val, params.dimensions, 1, params.funNumCEC)
+    #     for s in population:
+    #         s_val = [0]
+    #         params.evaluationFunction(s, s_val, params.dimensions, 1, params.funNumCEC)
+    #         if s_val <= best_val:
+    #             best = s
+    #             best_val = s_val
+    #
+    #     if (debug):
+    #         print("\nNajlepszy: " + str(best))
+    #     print("Wartość: ")
+    #     print(best_val)
+
+
+
+    DESVRG_alg = DESVRG(params, dESVRGParams)
 
     for i in range(iters):
-        print("##### " + str(i + 1) + " #####")
+        print("##### DESVRG " + str(i + 1) + " #####")
 
-        population = DE_alg.run()
+        population = DESVRG_alg.run()
 
         # find best specimen
         best = population[0]
@@ -101,25 +147,49 @@ if __name__ == '__main__':
         print("Wartość: ")
         print(best_val)
 
-    DEANN_alg = DEANN(params, dEAANParams, aNNParams)
+    # DEANN_alg = DEANN(params, dEAANParams, aNNParams)
+    #
+    # for i in range(iters):
+    #     print("##### DEANN " + str(i + 1) + " #####")
+    #
+    #     population = DEANN_alg.run()
+    #
+    #     # find best specimen
+    #     best = population[0]
+    #     best_val = [0]
+    #     params.evaluationFunction(best, best_val, params.dimensions, 1, params.funNumCEC)
+    #     for s in population:
+    #         s_val = [0]
+    #         params.evaluationFunction(s, s_val, params.dimensions, 1, params.funNumCEC)
+    #         if s_val <= best_val:
+    #             best = s
+    #             best_val = s_val
+    #
+    #     if (debug):
+    #         print("\nNajlepszy: " + str(best))
+    #     print("Wartość: ")
+    #     print(best_val)
 
-    for i in range(iters):
-        print("##### DEANN " + str(i + 1) + " #####")
 
-        population = DEANN_alg.run()
-
-        # find best specimen
-        best = population[0]
-        best_val = [0]
-        params.evaluationFunction(best, best_val, params.dimensions, 1, params.funNumCEC)
-        for s in population:
-            s_val = [0]
-            params.evaluationFunction(s, s_val, params.dimensions, 1, params.funNumCEC)
-            if s_val <= best_val:
-                best = s
-                best_val = s_val
-
-        if (debug):
-            print("\nNajlepszy: " + str(best))
-        print("Wartość: ")
-        print(best_val)
+    # DEANN_alg = DEANN(params, dEAANParams, aNNParams)
+    #
+    # for i in range(iters):
+    #     print("##### DEANN " + str(i + 1) + " #####")
+    #
+    #     population = DEANN_alg.run()
+    #
+    #     # find best specimen
+    #     best = population[0]
+    #     best_val = [0]
+    #     params.evaluationFunction(best, best_val, params.dimensions, 1, params.funNumCEC)
+    #     for s in population:
+    #         s_val = [0]
+    #         params.evaluationFunction(s, s_val, params.dimensions, 1, params.funNumCEC)
+    #         if s_val <= best_val:
+    #             best = s
+    #             best_val = s_val
+    #
+    #     if (debug):
+    #         print("\nNajlepszy: " + str(best))
+    #     print("Wartość: ")
+    #     print(best_val)
