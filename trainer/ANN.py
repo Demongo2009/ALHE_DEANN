@@ -1,25 +1,19 @@
 import os
 import time
-import random
 from pyDOE import lhs
-import math
 import numpy as np
-import pandas as pd
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.layers.experimental.preprocessing import Normalization
 from tensorflow.keras import layers
 from tensorflow.keras.regularizers import l1_l2
-from cec21_functions import cec21_test_func
-import matplotlib.pyplot as plt
-from scipy.stats import reciprocal
+from trainer.cec21_functions import cec21_test_func
 from sklearn.model_selection import RandomizedSearchCV
-from kmeans_initializer import *
+
 
 class ANNParams:
     def __init__(self, dimensions = 2, trainingDataSize=10000, epochs=10,
                  numberOfHiddenLayers = 3, numberOfStartNeurons=100, learningRate = 3e-6, useCV=False,
-                 funNumCEC = 1):
+                 funNumCEC = 1, loadModel = "./my_models", pathToModel = "./my_models", saveToPath = "./my_models"):
         """
         Params for ANN trainer created for ANN usage in DEANN. Can also be used to train and save ANN.
 
@@ -42,9 +36,9 @@ class ANNParams:
         self.evaluationFunction = cec21_test_func
         self.funNumCEC = funNumCEC
         self.learningRate = learningRate
-        # self.loadModel = loadModel
-        # self.pathToModel = pathToModel
-        # self.saveToPath = saveToPath
+        self.loadModel = loadModel
+        self.pathToModel = pathToModel
+        self.saveToPath = saveToPath
 
 class ANNTrainer():
     def __init__(self, aNNParams = ANNParams()):
