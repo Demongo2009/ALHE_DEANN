@@ -191,8 +191,17 @@ class DESVR(DE):
 
                 self.model.set_params(**dict)
 
-                self.model.fit(selectedPopulation, evaluatedPopulation)
-                print("Number of SVs: " + str(len(self.model.support_vectors_)))
+                if self.dESVRParams.useTrainingSet:
+                    self.updateTrainingSet(selectedPopulation, evaluatedPopulation)
+                    training = [ x for (x, _) in self.trainingEvaluatedPairSet]
+                    evaluatedTraining = [ x for (_, x) in self.trainingEvaluatedPairSet]
+                else:
+                    training = selectedPopulation
+                    evaluatedTraining = evaluatedPopulation
+
+                self.model.fit(training, evaluatedTraining)
+
+
 
             if (self.dEParams.debug):
                 print("Generation: " + str(fes / self.dEParams.populationSize))
@@ -200,10 +209,14 @@ class DESVR(DE):
                 print("Sample from population: " + str(randomSpecimen))
                 print("Value evaluated with model: " + str(self.model.predict(np.array(randomSpecimen).reshape(1, self.dEParams.dimensions))) + "\n")
 
-            MSE = mean_squared_error(originalValuesForMSE, modelValuesForMSE)
-            print("MSE: " + str(MSE))
+            if generation % 100 == 0:
+                MSE = mean_squared_error(originalValuesForMSE, modelValuesForMSE)
+                print("Generation: " + str(generation))
+                print("MSE: " + str(MSE))
+                print("Number of SVs: " + str(len(self.model.support_vectors_))+ "\n")
             generation += 1
         self.dEParams.seed += 1
+        # print(self.dEParams.seed)
         return population
 
     def run(self):
@@ -237,6 +250,9 @@ class DESVR(DE):
 
                 evaluatedPopulation = [item for sublist in evaluatedPopulation for item in sublist]
 
+                # evaluatedPopulation = [item if np.isfinite(item) else 100000 for item in evaluatedPopulation]
+
+
                 dict = {}
                 if self.dESVRParams.kernel == "rbf":
                     self.C *= 0.95
@@ -257,9 +273,9 @@ class DESVR(DE):
                         dict = {"C": self.C, "degree": self.dESVRParams.degree}
                 self.model.set_params(**dict)
 
-                print(self.C)
+                # print(self.C)
                 # print(self.gamma)
-                print(evaluatedPopulation)
+                # print(evaluatedPopulation)
 
                 if self.dESVRParams.useTrainingSet:
                     self.updateTrainingSet(selectedPopulation, evaluatedPopulation)
@@ -270,15 +286,17 @@ class DESVR(DE):
                     evaluatedTraining = evaluatedPopulation
 
                 self.model.fit(training, evaluatedTraining)
-                print("Number of SVs: " + str(len(self.model.support_vectors_)))
 
             if (self.dEParams.debug):
                 print("Generation: " + str(fes / self.dEParams.populationSize))
                 randomSpecimen = population[np.random.randint(population.shape[0], size=1), :][0]
                 print("Sample from population: " + str(randomSpecimen))
                 print("Value evaluated with model: " + str(self.model.predict(np.array(randomSpecimen).reshape(1, self.dEParams.dimensions))) + "\n")
-
+            # if generation % 10000 == 0:
+            #     print("Generation: " + str(generation))
+            #     print("Number of SVs: " + str(len(self.model.support_vectors_)))
             generation += 1
+
         self.dEParams.seed += 1
         return population
 
