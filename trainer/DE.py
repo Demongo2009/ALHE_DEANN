@@ -1,7 +1,7 @@
 import random
 import numpy as np
 import pandas as pd
-from cec17_functions import cec17_test_func
+from cec21_functions import cec21_test_func
 import matplotlib.pyplot as plt
 
 class DEParams:
@@ -19,7 +19,7 @@ class DEParams:
         self.maxValue = maxValue
         self.funNumCEC = funNumCEC
         self.penaltyFactor = penaltyFactor
-        self.evaluationFunction = cec17_test_func
+        self.evaluationFunction = cec21_test_func
         self.seed = seed
         self.drawPlot = drawPlot
         self.debug = debug
@@ -128,7 +128,7 @@ class DE:
                 trialVector = self.crossover(specimen, donorVector)
 
                 self.evaluate(trialVector, specimen, population)
-                fes += 1
+                fes += 2
 
             if (self.dEParams.debug):
                 print("Generation: " + str(fes / self.dEParams.populationSize))

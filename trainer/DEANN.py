@@ -1,21 +1,17 @@
-import random
-from pyDOE import lhs
-import math
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras.layers.experimental.preprocessing import Normalization
-from tensorflow.keras import layers
-from tensorflow.keras.regularizers import l1_l2
-import matplotlib.pyplot as plt
 from DE import *
+from ANN import *
 
 class DEANNParams:
-    def __init__(self, trainingDataSize=10000, epochs=10, teachModelEveryGeneration=False,
+    def __init__(self, teachModelEveryGeneration=False,
                  teachModelEveryGenerationEpochs=10):
-        self.trainingDataSize = trainingDataSize
-        self.epochs = epochs
+        """
+        Params for DEANN version of algorithm especially ANN.
+
+
+        :param teachModelEveryGeneration:
+        :param teachModelEveryGenerationEpochs:
+        """
+
 
         self.teachModelEveryGeneration = teachModelEveryGeneration
         self.teachModelEveryGenerationEpochs = teachModelEveryGenerationEpochs
@@ -23,27 +19,11 @@ class DEANNParams:
 
 class DEANN(DE):
 
-    def __init__(self, dEParams=DEParams(), dEANNParams=DEANNParams()):
+    def __init__(self, dEParams=DEParams(), dEANNParams=DEANNParams(), aNNParams=ANNParams()):
         super().__init__(dEParams)
         self.dEANNParams = dEANNParams
-        self.model, self.validation, self.evaluatedValidation = self.trainAndCompileModel()
-
-    def generateTrainingData(self):
-        # data = np.random.uniform(minValue, maxValue, (params.trainingDataSize, dimensions))
-        lhsData = lhs(self.dEParams.dimensions, samples=self.dEANNParams.trainingDataSize)
-        data = np.array(lhsData) * 200
-        data = data - 100
-        cut = np.int32(self.dEANNParams.trainingDataSize * 0.8)
-        return data[:cut, :], data[cut:, :]
-
-    # not used currently
-    def dataNormalization(self, training, validation):
-        normalizerTraining = Normalization(axis=-1)
-        normalizerTraining.adapt(training)
-        normalizerValidation = Normalization(axis=-1)
-        normalizerValidation.adapt(validation)
-
-        return normalizerTraining(training), normalizerValidation(validation)
+        self.aNNTrainer = ANNTrainer(aNNParams)
+        self.model, self.validation, self.evaluatedValidation = self.aNNTrainer.trainAndCompileModel()
 
 
     def evaluateSet(self, set):
@@ -54,7 +34,6 @@ class DEANN(DE):
             self.dEParams.evaluationFunction(vector, val, self.dEParams.dimensions, 1, self.dEParams.funNumCEC)
             evaluated.append(val)
         return np.array(evaluated)
-
 
     def evaluateWithModel(self, trialVector, specimen, population):
         specimen_val = self.model.predict(np.array(specimen).reshape(1, self.dEParams.dimensions))
@@ -68,7 +47,6 @@ class DEANN(DE):
                 newValue = pd.DataFrame([[specimen[0], specimen[1], specimen_val[0]]], columns=self.columns)
             else:
                 newValue = pd.DataFrame([[specimen[0], specimen_val[0]]], columns=self.columns)
-
             self.log = self.log.append(newValue)
 
             if self.dEParams.dimensions == 2:
@@ -80,6 +58,7 @@ class DEANN(DE):
 
         if trialVector_val <= specimen_val:
                 population[np.where(population == specimen)[0][0]] = trialVector
+
 
 
     def trainAndCompileModel(self):
@@ -116,6 +95,7 @@ class DEANN(DE):
                   validation_data=(validation, evaluatedValidation),
                       callbacks=[early_stopping_cb])
         return model, validation, evaluatedValidation
+
 
     def run(self):
 

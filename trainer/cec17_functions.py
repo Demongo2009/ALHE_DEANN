@@ -4,9 +4,9 @@ import platform
 import numpy as np
 
 if platform.system() == "Windows":
-    lib = 'cec17_test_func_win.so'
+    lib = 'trainer/cec17_test_func_win.so'
 elif platform.system() == "Linux":
-    lib = 'cec17_test_func_lin.so'
+    lib = 'trainer/cec17_test_func_lin.so'
 else:
     lib = 'Something wrong'
 
